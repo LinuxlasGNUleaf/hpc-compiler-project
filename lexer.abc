@@ -1,0 +1,81 @@
+@ <stdio.hdr>
+@ "lexer.hdr"
+// -- internal: only available within this translation unit
+global ch: int;
+global currentPos: Pos = {1,0};
+
+fn isDigit(ch: int): bool
+{
+    return ch >= '0' && ch <= '9';
+}
+
+fn isAlph(ch: int): bool
+{
+    return ch >= 'a' && ch <= 'z' ||
+           ch >= 'A' && ch <= 'Z';
+}
+
+fn nextCh(updateVal: bool)
+{
+    static lengthVal: size_t;
+    if (updateVal) {
+        token.val[lengthVal++] = ch;
+        token.val[lengthVal] = 0;
+        assert(lengthVal < sizeof(token.val) / sizeof(token.val[0]));
+    } else {
+        lengthVal = 0;
+    }
+    ch = getchar();
+    if (ch == '\n') {
+        ++currentPos.row;
+        currentPos.col = 0;
+    } else {
+        ++currentPos.col;
+    }
+}
+
+// -- exported: available for other translation units
+global token: Token;
+
+fn getToken(): TokenKind
+{
+    while (ch == 0 || ch == ' ' || ch == '\n' || ch == '\t') {
+        nextCh(false);
+    }
+    token.pos = currentPos;
+    if (isDigit(ch)) {
+        while (isDigit(ch)) {
+            nextCh(true);
+        }
+        return token.kind = DECIMAL_LITERAL;
+    } else if (isAlph(ch)) {
+        while (isAlph(ch) || isDigit(ch)) {
+            nextCh(true);
+        }
+        return token.kind = IDENTIFIER;
+    } else if (ch == '+') {
+        nextCh(true);
+        return token.kind = PLUS;
+    } else if (ch == '*') {
+        nextCh(true);
+        return token.kind = ASTERISK;
+    } else if (ch == EOF) {
+        return token.kind = EOI;
+    } else {
+        nextCh(true);
+        return token.kind = BAD_TOKEN;
+    }
+}
+
+fn tokenKindStr(token: TokenKind): -> char
+{
+    switch (token) {
+        case BAD_TOKEN: return "BAD_TOKEN";
+        case EOI: return "EOI";
+        case DECIMAL_LITERAL: return "DECIMAL_LITERAL";
+        case PLUS: return "PLUS";
+        case ASTERISK: return "ASTERISK";
+        case IDENTIFIER: return "IDENTIFIER";
+        default: return "??";
+    }
+}
