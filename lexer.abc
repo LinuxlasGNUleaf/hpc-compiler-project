@@ -5,10 +5,10 @@
 
 global ch: int;
 global currentPos: Pos = {1, 0};
+global lengthVal: size_t = 0;
 
 fn nextCh(updateVal: bool)
 {
-    static lengthVal: size_t;
     if (updateVal) {
         token.val[lengthVal++] = ch;
         token.val[lengthVal] = 0;
@@ -59,9 +59,15 @@ fn getToken(): TokenKind
     } else if (ch == '+') {
         nextCh(true);
         return token.kind = PLUS;
+    } else if (ch == '-') {
+        nextCh(true);
+        return token.kind = MINUS;
     } else if (ch == '*') {
         nextCh(true);
         return token.kind = ASTERISK;
+    } else if (ch == '/') {
+        nextCh(true);
+        return token.kind = SLASH;
     } else if (ch == '(') {
         nextCh(true);
         return token.kind = LPAREN;
@@ -84,7 +90,9 @@ fn tokenKindStr(token: TokenKind): -> char
         case DECIMAL_LITERAL: return "DECIMAL_LITERAL";
         case IDENTIFIER: return "IDENTIFIER";
         case PLUS: return "PLUS";
+        case MINUS: return "MINUS";
         case ASTERISK: return "ASTERISK";
+        case SLASH: return "SLASH";
         case LPAREN: return "LPAREN";
         case RPAREN: return "RPAREN";
         default: return "??";
