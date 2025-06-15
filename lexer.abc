@@ -1,19 +1,10 @@
 @ <stdio.hdr>
 @ "lexer.hdr"
+
 // -- internal: only available within this translation unit
+
 global ch: int;
-global currentPos: Pos = {1,0};
-
-fn isDigit(ch: int): bool
-{
-    return ch >= '0' && ch <= '9';
-}
-
-fn isAlph(ch: int): bool
-{
-    return ch >= 'a' && ch <= 'z' ||
-           ch >= 'A' && ch <= 'Z';
-}
+global currentPos: Pos = {1, 0};
 
 fn nextCh(updateVal: bool)
 {
@@ -34,11 +25,23 @@ fn nextCh(updateVal: bool)
     }
 }
 
+fn isDigit(ch: int): bool
+{
+    return ch >= '0' && ch <= '9';
+}
+
+fn isLetter(ch: int): bool
+{
+    return ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'A';
+}
+
 // -- exported: available for other translation units
+
 global token: Token;
 
 fn getToken(): TokenKind
 {
+    lengthVal = 0;
     while (ch == 0 || ch == ' ' || ch == '\n' || ch == '\t') {
         nextCh(false);
     }
@@ -48,8 +51,8 @@ fn getToken(): TokenKind
             nextCh(true);
         }
         return token.kind = DECIMAL_LITERAL;
-    } else if (isAlph(ch)) {
-        while (isAlph(ch) || isDigit(ch)) {
+    } else if (isLetter(ch)) {
+        while (isLetter(ch) || isDigit(ch)) {
             nextCh(true);
         }
         return token.kind = IDENTIFIER;
@@ -59,6 +62,12 @@ fn getToken(): TokenKind
     } else if (ch == '*') {
         nextCh(true);
         return token.kind = ASTERISK;
+    } else if (ch == '(') {
+        nextCh(true);
+        return token.kind = LPAREN;
+    } else if (ch == ')') {
+        nextCh(true);
+        return token.kind = RPAREN;
     } else if (ch == EOF) {
         return token.kind = EOI;
     } else {
@@ -73,9 +82,11 @@ fn tokenKindStr(token: TokenKind): -> char
         case BAD_TOKEN: return "BAD_TOKEN";
         case EOI: return "EOI";
         case DECIMAL_LITERAL: return "DECIMAL_LITERAL";
+        case IDENTIFIER: return "IDENTIFIER";
         case PLUS: return "PLUS";
         case ASTERISK: return "ASTERISK";
-        case IDENTIFIER: return "IDENTIFIER";
+        case LPAREN: return "LPAREN";
+        case RPAREN: return "RPAREN";
         default: return "??";
     }
 }
