@@ -12,5 +12,7 @@ fn main() {
     printExprTree(expr);
     printf("\n");
 
+    genReleaseReg(loadExpr(expr));
+
     releaseExpr(expr);
 }
