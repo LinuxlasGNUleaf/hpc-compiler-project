@@ -7,11 +7,21 @@
 fn main()
 {
     getToken();
-    local expr: -> Expr = parseExpr();
-
-    if (expr && token.kind == EOI) {
-        printExprTree(expr);
-    } else {
+    // parse program (sequence of statements)
+    while (true) {
+        // parse statement
+        local expr: -> Expr = parseExpr();
+        if (!expr) {
+            break;
+        }
+        if (token.kind != SEMICOLON) {
+            printf("%u.%u: ';' expected\n", token.pos.row, token.pos.col);
+            break;
+        }
+        getToken();
+        printExprLatexTree(expr);
+    }
+    if (token.kind != EOI) {
         printf("syntax error\n");
     }
 }

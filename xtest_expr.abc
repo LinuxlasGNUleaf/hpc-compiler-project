@@ -1,5 +1,6 @@
 @ <stdio.hdr>
 @ "expr.hdr"
+@ "gen.hdr"
 
 fn main() {
     local expr: -> Expr;
@@ -9,7 +10,13 @@ fn main() {
                                              createIntegerExpr((string)"2"),
                                              createIntegerExpr((string)"3")),
                             createIntegerExpr((string)"4"));
-    printExprTree(expr);
+    printExprLatexTree(expr);
+    printf("\n");
+
+    expr = createBinaryExpr(EXPR_ASSIGN,
+                            createIdentifierExpr((string)"x"),
+                            expr);
+    printExprLatexTree(expr);
     printf("\n");
 
     genReleaseReg(loadExpr(expr));

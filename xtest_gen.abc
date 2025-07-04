@@ -1,14 +1,24 @@
 @ "gen.hdr"
 
-fn main()
-{
-    local r1: GenReg = genConstant("12");
-    local r2: GenReg = genConstant("34");
-    local r3: GenReg = genInstr(GEN_ADD, r1, r2);
-    genReleaseReg(r3);
-    r3 = genInstr(GEN_SUB, r1, r2);
+fn main() {
+// load y into r1
+    local r1: GenReg = genLoadAddress("y");
+    genReleaseReg(r1);
+    r1 = genFetch(r1);
+
+// load 1 into register
+    local r2: GenReg = genConstant("1");
+
+// generate add instruction of r1 and r2
     genReleaseReg(r1);
     genReleaseReg(r2);
-    r1 = genConstant("42");
-    genReleaseReg(r1);
+    local r3: GenReg = genInstr(GEN_ADD, r1, r2);
+
+// store into adress of y
+    local r4: GenReg = genLoadAddress("y");
+    genStore(r3, r4);
+
+    genHalt(r3);
+    genReleaseReg(r3);
+    genReleaseReg(r4);
 }

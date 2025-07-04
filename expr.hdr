@@ -1,6 +1,7 @@
 @ <stdlib.hdr>
 
 @ "string.hdr"
+@ "gen.hdr"
 
 enum ExprKind
 {
@@ -9,10 +10,12 @@ enum ExprKind
     EXPR_MUL,
     EXPR_SUB,
     EXPR_DIV,
+    EXPR_ASSIGN,
     EXPR_BINARY_END,
 
     EXPR_PRIMARY = EXPR_BINARY_END,
     EXPR_INTEGER = EXPR_PRIMARY,
+    EXPR_IDENTIFIER,
     EXPR_PRIMARY_END
 };
 
@@ -21,14 +24,20 @@ struct Expr
     kind:           ExprKind;
     left, right:    ->Expr;
     decimal:        string;
+    identifier:      string;
 };
+
+fn loadExprAddress(expr: ->Expr): GenReg;
 
 // constructors (caller becomes owner)
 extern fn createBinaryExpr(kind: ExprKind, left: ->Expr, right: ->Expr): ->Expr;
 extern fn createIntegerExpr(val: string): ->Expr;
+extern fn createIdentifierExpr(val: string): ->Expr;
 
 // destructor
 extern fn releaseExpr(expr: ->Expr);
 
 // methods
 extern fn printExprTree(expr: ->Expr);
+extern fn printExprLatexTree(expr: ->Expr);
+extern fn loadExpr(expr: ->Expr): GenReg;

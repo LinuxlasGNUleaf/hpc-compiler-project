@@ -1,7 +1,78 @@
+@ <stdio.hdr>
+
 @ "gen.hdr"
 
-fn getReg(): int
+global usedReg: array[16] of bool;
+
+fn getReg(): GenReg
 {
-    static reg: int = 1;
-    return reg++;
+    for (local r: GenReg = 3; r < sizeof(usedReg)/sizeof(usedReg[0]); r++) {
+        if (!usedReg[r]) {
+            usedReg[r] = true;
+            return r;
+        }
+    }
+    assert (0 && "getReg: out of registers!\n");
+    return 0;
 }
+
+fn genReleaseReg(reg: GenReg)
+{
+    assert(usedReg[reg]);
+    usedReg[reg] = false;
+}
+
+fn genConstant(val: -> char): GenReg
+{
+    local reg: GenReg = getReg();
+    printf("\tload %s, %%%d\n", val, reg);
+    return reg;
+}
+
+fn genInstr(instr: GenInstr, left: GenReg, right: GenReg): GenReg
+{
+    local reg: GenReg = getReg();
+    switch (instr) {
+        case GEN_ADD:
+            printf("\tadd %%%d, %%%d, %%%d\n", left, right, reg);
+            break;
+        case GEN_SUB:
+            printf("\tsub %%%d, %%%d, %%%d\n", left, right, reg);
+            break;
+        case GEN_MUL:
+            printf("\tmul %%%d, %%%d, %%%d\n", left, right, reg);
+            break;
+        case GEN_DIV:
+            printf("\tdiv %%%d, %%%d, %%%d\n", left, right, reg);
+            break;
+        default:
+            assert(0 && "Interal error: genInstr");
+            return 0;
+    }
+    return reg;
+}
+
+fn genHalt(exitCode: GenReg)
+{
+    printf("\thalt %%%d\n", exitCode);
+}
+
+fn genLoadAddress(varName: -> char): GenReg
+{
+    local reg: GenReg = getReg();
+    printf("\tload %s, %%%d\n", varName, reg);
+    return reg;
+}
+
+fn genFetch(addr: GenReg): GenReg
+{
+    local reg: GenReg = getReg();
+    printf("\tmovq (%%%d), %%%d\n", addr, reg);
+    return reg;
+}
+
+fn genStore(val: GenReg, addr: GenReg)
+{
+    printf("\tmovq %%%d, (%%%d)\n", val, addr);
+}
+

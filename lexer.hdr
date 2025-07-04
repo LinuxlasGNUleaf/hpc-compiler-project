@@ -11,7 +11,9 @@ enum TokenKind
     SLASH,
     IDENTIFIER,
     LPAREN,
-    RPAREN
+    RPAREN,
+    SEMICOLON,
+    EQUAL
 };
 
 type TokenVal: string;

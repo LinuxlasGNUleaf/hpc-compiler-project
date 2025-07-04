@@ -20,6 +20,15 @@ fn createIntegerExpr(val: string): ->Expr
     return n;
 }
 
+fn createIdentifierExpr(name: string): ->Expr
+{
+    local n: ->Expr = malloc(sizeof(*n));
+    assert(n);
+    n->kind = EXPR_IDENTIFIER;
+    n->identifier = name;
+    return n;
+}
+
 fn releaseExpr(expr: ->Expr)
 {
     if (!expr) {
@@ -37,19 +46,82 @@ fn releaseExpr(expr: ->Expr)
 
 fn printExprTree(expr: ->Expr)
 {
-    if (expr->kind == EXPR_INTEGER) {
-        printf(" [ %s ]", expr->decimal);
+    if (expr->kind >= EXPR_PRIMARY && expr->kind < EXPR_PRIMARY_END) {
+        switch (expr->kind)
+        {
+            case EXPR_INTEGER:    printf(" [ %s ]", expr->decimal); break;
+            case EXPR_IDENTIFIER: printf(" [ %s ]", expr->identifier); break;
+            default: assert(0);
+        }
     } else if (expr->kind >= EXPR_BINARY && expr->kind < EXPR_BINARY_END) {
         printf(" [ ");
         switch (expr->kind) {
-            case EXPR_ADD: printf("+"); break;
-            case EXPR_MUL: printf("*"); break;
-            case EXPR_SUB: printf("-"); break;
-            case EXPR_DIV: printf("/"); break;
+            case EXPR_ADD:      printf("+");   break;
+            case EXPR_MUL:      printf("*");   break;
+            case EXPR_SUB:      printf("-");   break;
+            case EXPR_DIV:      printf("/");   break;
+            case EXPR_ASSIGN:   printf("{=}"); break;
             default: assert(0);
         }
         printExprTree(expr->left);
         printExprTree(expr->right);
         printf("] ");
     }
+}
+
+fn printExprLatexTree(expr: ->Expr)
+{
+    printf("\\item\n");
+    printf("\\[\n");
+    printf("\\begin{forest}\n");
+    printf("for tree={draw,circle,calign=fixed edge angles}\n");
+    printExprTree(expr);
+    printf("\n");
+    printf("\\end{forest}\n");
+    printf("\\]\n");
+}
+
+fn loadExpr(expr: ->Expr): GenReg
+{
+    if (expr->kind >= EXPR_PRIMARY && expr->kind <= EXPR_PRIMARY_END) {
+        switch(expr->kind) {
+            case EXPR_INTEGER: return genConstant(expr->decimal);
+            case EXPR_IDENTIFIER: {
+                local addr: GenReg = genLoadAddress(expr->identifier);
+                return genFetch(addr);
+            }
+            default:
+                assert(0 && "loadExpr 1: not all cases handled!");
+                return genConstant("0");
+        }
+    } else if (expr->kind >= EXPR_BINARY && expr->kind < EXPR_BINARY_END) {
+        if (expr->kind == EXPR_ASSIGN) {
+            local val: GenReg = loadExpr(expr->right);
+            local addr: GenReg = loadExprAddress(expr->left);
+            genReleaseReg(addr);
+            genStore(val, addr);
+            return val;
+        }
+        local left: GenReg = loadExpr(expr->left);
+        local right: GenReg = loadExpr(expr->right);
+        genReleaseReg(left);
+        genReleaseReg(right);
+        switch (expr->kind) {
+            case EXPR_ADD: return genInstr(GEN_ADD, left, right);
+            case EXPR_SUB: return genInstr(GEN_SUB, left, right);
+            case EXPR_MUL: return genInstr(GEN_MUL, left, right);
+            case EXPR_DIV: return genInstr(GEN_DIV, left, right);
+            default:
+                assert(0 && "loadExpr 2: not all cases handled!");
+                return genConstant("0");
+        }
+    }
+    assert(0 && "loadExpr 3: not all cases handled!");
+    return genConstant("0");
+}
+
+fn loadExprAddress(expr: ->Expr): GenReg
+{
+    assert(expr->kind == EXPR_IDENTIFIER);
+    return genLoadAddress(expr->identifier);
 }

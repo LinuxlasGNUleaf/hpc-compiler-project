@@ -1,6 +1,10 @@
 @ "expr.hdr"
+@ "lexer.hdr"
 
 extern fn parseExpr(): -> Expr;
+extern fn parseAdditive(): -> Expr;
 
 fn parseFactor(): -> Expr;
 fn parseTerm(): -> Expr;
+
+fn exprKindFromToken(token: Token): ExprKind;

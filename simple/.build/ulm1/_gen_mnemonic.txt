@@ -1,0 +1,6 @@
+HALT halt
+LOAD load
+ADD add
+MUL mul
+SUB sub
+DIV div

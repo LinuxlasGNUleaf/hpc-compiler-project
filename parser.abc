@@ -6,12 +6,28 @@
 
 fn parseExpr(): -> Expr
 {
-    local left: ->Expr  = parseTerm();
+    local left: ->Expr = parseAdditive();
+    while (token.kind == EQUAL) {
+        getToken();
+        local right: ->Expr = parseExpr();
+        if (!right) {
+            printf("%u.%u expected additive\n",
+                   token.pos.row, token.pos.col);
+            assert(0);
+        }
+        left = createBinaryExpr(EXPR_ASSIGN, left, right);
+    }
+    return left;
+}
+
+fn parseAdditive(): ->Expr
+{
+    local left: ->Expr = parseTerm();
     if (!left) {
         return nullptr;
     }
     while (token.kind == PLUS || token.kind == MINUS) {
-        local tok: Token = token;
+        local exprKind: ExprKind = exprKindFromToken(token);
         getToken();
         local right: ->Expr = parseTerm();
         if (!right) {
@@ -19,11 +35,7 @@ fn parseExpr(): -> Expr
                    token.pos.row, token.pos.col);
             assert(0);
         }
-        if (tok.kind == PLUS) {
-            left = createBinaryExpr(EXPR_ADD, left, right);
-        } else {
-            left = createBinaryExpr(EXPR_SUB, left, right);
-        }
+        left = createBinaryExpr(exprKind, left, right);
     }
     return left;
 }
@@ -35,7 +47,7 @@ fn parseTerm(): ->Expr
         return nullptr;
     }
     while (token.kind == ASTERISK || token.kind == SLASH) {
-        local tok: Token = token;
+        local exprKind: ExprKind = exprKindFromToken(token);
         getToken();
         local right: ->Expr = parseFactor();
         if (!right) {
@@ -43,11 +55,7 @@ fn parseTerm(): ->Expr
                    token.pos.row, token.pos.col);
             assert(0);
         }
-        if (tok.kind == ASTERISK) {
-            left = createBinaryExpr(EXPR_MUL, left, right);
-        } else {
-            left = createBinaryExpr(EXPR_DIV, left, right);
-        }
+        left = createBinaryExpr(exprKind, left, right);
     }
     return left;
 }
@@ -56,6 +64,10 @@ fn parseFactor(): -> Expr
 {
     if (token.kind == DECIMAL_LITERAL) {
         local expr: ->Expr = createIntegerExpr(token.val);
+        getToken();
+        return expr;
+    } else if (token.kind == IDENTIFIER) {
+        local expr: ->Expr = createIdentifierExpr(token.val);
         getToken();
         return expr;
     } else if (token.kind == LPAREN) {
@@ -75,5 +87,19 @@ fn parseFactor(): -> Expr
         return expr;
     } else {
         return nullptr;
+    }
+}
+
+fn exprKindFromToken(token: Token): ExprKind
+{
+    switch (token.kind) {
+        case ASTERISK:  return EXPR_MUL;
+        case SLASH:     return EXPR_DIV;
+        case PLUS:      return EXPR_ADD;
+        case MINUS:     return EXPR_SUB;
+        case EQUAL:     return EXPR_ASSIGN;
+        default:
+            assert(0 && "internal error: exprKindFromToken");
+            return 0;
     }
 }

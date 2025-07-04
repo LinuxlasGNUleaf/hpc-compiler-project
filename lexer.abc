@@ -74,6 +74,12 @@ fn getToken(): TokenKind
     } else if (ch == ')') {
         nextCh(true);
         return token.kind = RPAREN;
+    } else if (ch == ';') {
+        nextCh(true);
+        return token.kind = SEMICOLON;
+    } else if (ch == '=') {
+        nextCh(true);
+        return token.kind = EQUAL;
     } else if (ch == EOF) {
         return token.kind = EOI;
     } else {
@@ -95,6 +101,8 @@ fn tokenKindStr(token: TokenKind): -> char
         case SLASH: return "SLASH";
         case LPAREN: return "LPAREN";
         case RPAREN: return "RPAREN";
+        case SEMICOLON: return "SEMICOLON";
+        case EQUAL: return "EQUAL";
         default: return "??";
     }
 }
