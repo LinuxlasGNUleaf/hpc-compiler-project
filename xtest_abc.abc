@@ -7,13 +7,29 @@
 fn main()
 {
     getToken();
-    local expr: -> Expr = parseExpr();
-
-    if (expr && token.kind == EOI) {
-        local reg: GenReg = loadExpr(expr);
-        genHalt(reg);
-        genReleaseReg(reg);
-    } else {
+    // parse program (sequence of statements)
+    while (true) {
+        // parse statement
+        local expr: -> Expr = parseExpr();
+        if (!expr) {
+            break;
+        }
+        if (token.kind != SEMICOLON) {
+            printf("%u.%u: ';' expected\n", token.pos.row, token.pos.col);
+            break;
+        }
+        getToken();
+        genReleaseReg(loadExpr(expr));
+//      printExprLatexTree(expr);
+    }
+    if (token.kind != EOI) {
         printf("syntax error\n");
     }
+    genHalt(3);
+    printf("\t.align 8\n");
+    printf("x .quad 8\n");
+    printf("\t.align 8\n");
+    printf("y .quad 8\n");
+    printf("\t.align 8\n");
+    printf("z .quad 8\n");
 }

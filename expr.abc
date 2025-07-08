@@ -88,6 +88,7 @@ fn loadExpr(expr: ->Expr): GenReg
             case EXPR_INTEGER: return genConstant(expr->decimal);
             case EXPR_IDENTIFIER: {
                 local addr: GenReg = genLoadAddress(expr->identifier);
+                genReleaseReg(addr);
                 return genFetch(addr);
             }
             default:

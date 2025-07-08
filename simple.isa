@@ -1,6 +1,8 @@
 S20_R       (OP u 8) (dest u 4) (imm s 20)
 R_R_R       (OP u 8) (z u 4) (y u 4) (x u 4)
 
+MEM (OP u 8)(data u 4)(addr u 4)(offset s 16)
+
 0x02 R_R_R
 :   halt %x
     ulm_halt(ulm_regVal(x));
@@ -19,3 +21,21 @@ R_R_R       (OP u 8) (z u 4) (y u 4) (x u 4)
 0x17 R_R_R
 :   mul %x, %y, %z
     ulm_mul64(ulm_regVal(x), ulm_regVal(y), z);
+
+0x14 R_R_R
+: sub %x, %y, %z
+    ulm_sub64(ulm_regVal(x), ulm_regVal(y), z);
+
+0x18 R_R_R
+: div %x, %y, %z
+    ulm_idiv64(ulm_regVal(x), ulm_regVal(y), z);
+
+0x23 MEM
+: movq offset(%addr), %data
+: movq (%addr), %data
+    ulm_fetch64(offset, addr, 0, 1, ULM_ZERO_EXT, 8, data);
+
+0x24 MEM
+: movq %data, offset(%addr)
+: movq %data, (%addr)
+    ulm_store64(offset, addr, 0, 0, 8, data);
