@@ -1,0 +1,38 @@
+@ <stdio.hdr>
+@ <stdlib.hdr>
+
+@ "genvar.hdr"
+@ "ustr.hdr"
+
+struct GlobalNode
+{
+    next: -> GlobalNode;
+    name: -> UStr;
+};
+
+global globalList: -> GlobalNode;
+
+fn genAddGlobalVar(name: -> UStr)
+{
+    local n: -> GlobalNode = globalList;
+    for(; n; n=n->next)
+    {
+        if (name == n->name) {
+            return;
+        }
+    }
+    n = malloc(sizeof(GlobalNode));
+    n->name = name;
+    n->next = globalList;
+    globalList = n;
+}
+
+fn genPrintSymtab()
+{
+    printf("\t.data\n");
+    for (local n: -> GlobalNode = globalList; n; n = n->next) {
+        printf("\t.align 8\n");
+        printf("%s: \n", n->name);
+        printf("\t.quad 0\n");
+    }
+}

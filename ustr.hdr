@@ -1,0 +1,5 @@
+type UStr: readonly char;
+
+extern fn UStrCreate(s: -> char): -> UStr;
+
+

@@ -1,0 +1,21 @@
+@ <stdio.hdr>
+@ "ustr.hdr"
+
+fn main()
+{
+    local a1: array[] of char = "hallo";
+    local a2: array[] of char = "hello";
+    local a3: array[] of char = "hallo";
+
+    printf("a1 = %p '%s'\n", a1, a1);
+    printf("a2 = %p '%s'\n", a2, a2);
+    printf("a3 = %p '%s'\n", a3, a3);
+
+    local s1: -> UStr = UStrCreate(a1);
+    local s2: -> UStr = UStrCreate(a2);
+    local s3: -> UStr = UStrCreate(a3);
+
+    printf("s1 = %p '%s'\n", s1, s1);
+    printf("s2 = %p '%s'\n", s2, s2);
+    printf("s3 = %p '%s'\n", s3, s3);
+}

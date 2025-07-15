@@ -1,18 +1,21 @@
 @ <stdio.hdr>
+
 @ "lexer.hdr"
+@ "string.hdr"
 
 // -- internal: only available within this translation unit
 
 global ch: int;
 global currentPos: Pos = {1, 0};
 global lengthVal: size_t = 0;
+global val: string;
 
 fn nextCh(updateVal: bool)
 {
     if (updateVal) {
-        token.val[lengthVal++] = ch;
-        token.val[lengthVal] = 0;
-        assert(lengthVal < sizeof(token.val) / sizeof(token.val[0]));
+        val[lengthVal++] = ch;
+        val[lengthVal] = 0;
+        assert(lengthVal < sizeof(val) / sizeof(val[0]));
     } else {
         lengthVal = 0;
     }
@@ -35,11 +38,7 @@ fn isLetter(ch: int): bool
     return ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'A';
 }
 
-// -- exported: available for other translation units
-
-global token: Token;
-
-fn getToken(): TokenKind
+fn getTokenInternal(): TokenKind
 {
     lengthVal = 0;
     while (ch == 0 || ch == ' ' || ch == '\n' || ch == '\t') {
@@ -80,12 +79,26 @@ fn getToken(): TokenKind
     } else if (ch == '=') {
         nextCh(true);
         return token.kind = EQUAL;
+    } else if (ch == '&') {
+        nextCh(true);
+        return token.kind = AMPERSAND;
     } else if (ch == EOF) {
         return token.kind = EOI;
     } else {
         nextCh(true);
         return token.kind = BAD_TOKEN;
     }
+}
+
+// -- exported: available for other translation units
+
+global token: Token;
+
+fn getToken(): TokenKind
+{
+    getTokenInternal();
+    token.val = UStrCreate(val);
+    return token.kind;
 }
 
 fn tokenKindStr(token: TokenKind): -> char
@@ -103,6 +116,7 @@ fn tokenKindStr(token: TokenKind): -> char
         case RPAREN: return "RPAREN";
         case SEMICOLON: return "SEMICOLON";
         case EQUAL: return "EQUAL";
+        case AMPERSAND: return "AMPERSAND";
         default: return "??";
     }
 }

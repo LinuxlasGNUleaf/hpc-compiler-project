@@ -1,0 +1,35 @@
+@ <string.hdr>
+@ <stdlib.hdr>
+
+@ "ustr.hdr"
+
+struct UStrNode
+{
+    next: -> UStrNode;
+    data: array[1] of char;
+};
+
+global list: -> UStrNode;
+
+fn UStrCreate(s: -> char): -> UStr
+{
+    local n: -> UStrNode = list;
+    // Check if string already in list
+    for (; n; n = n->next) {
+        if (!strcmp(s, n->data)) {
+            return n->data;
+        }
+    }
+    n = list;
+
+    // allocate space for string (+1 already from struct for \0)
+    local len: size_t = strlen(s);
+    n = malloc(sizeof(*n) + len);
+
+    // Copy string into node and prepend node to list
+    strcpy(n->data, s);
+    n->next = list;
+    list = n;
+
+    return list->data;
+}

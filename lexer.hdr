@@ -1,4 +1,4 @@
-@ "string.hdr"
+@ "ustr.hdr"
 
 enum TokenKind
 {
@@ -13,17 +13,16 @@ enum TokenKind
     LPAREN,
     RPAREN,
     SEMICOLON,
-    EQUAL
+    EQUAL,
+    AMPERSAND
 };
-
-type TokenVal: string;
 
 struct Token {
     kind:   TokenKind;
     pos:    struct Pos{
                 row, col: unsigned;
             };
-    val:    TokenVal;
+    val:    -> UStr;
 };
 
 extern token: Token;

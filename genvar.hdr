@@ -1,0 +1,4 @@
+@ "ustr.hdr"
+
+extern fn genAddGlobalVar(name: -> UStr);
+extern fn genPrintSymtab();

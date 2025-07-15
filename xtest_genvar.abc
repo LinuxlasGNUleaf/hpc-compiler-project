@@ -1,0 +1,11 @@
+@ "genvar.hdr"
+
+fn main()
+{
+    genAddGlobalVar(UStrCreate("x"));
+    genAddGlobalVar(UStrCreate("y"));
+    genAddGlobalVar(UStrCreate("abc"));
+    genAddGlobalVar(UStrCreate("x"));
+    genPrintSymtab();
+}
+

@@ -11,7 +11,7 @@ fn createBinaryExpr(kind: ExprKind, left: ->Expr, right: ->Expr): ->Expr
     return n;
 }
 
-fn createIntegerExpr(val: string): ->Expr
+fn createIntegerExpr(val: ->UStr): ->Expr
 {
     local n: ->Expr = malloc(sizeof(*n));
     assert(n);
@@ -20,12 +20,30 @@ fn createIntegerExpr(val: string): ->Expr
     return n;
 }
 
-fn createIdentifierExpr(name: string): ->Expr
+fn createIdentifierExpr(name: ->UStr): ->Expr
 {
     local n: ->Expr = malloc(sizeof(*n));
     assert(n);
     n->kind = EXPR_IDENTIFIER;
     n->identifier = name;
+    return n;
+}
+
+fn createAddrExpr(child: -> Expr): -> Expr
+{
+    local n: ->Expr = malloc(sizeof(*n));
+    assert(n);
+    n->kind = EXPR_ADDR;
+    n->child = child;
+    return n;
+}
+
+fn createDerefExpr(child: -> Expr): -> Expr
+{
+    local n: ->Expr = malloc(sizeof(*n));
+    assert(n);
+    n->kind = EXPR_DEREF;
+    n->child = child;
     return n;
 }
 

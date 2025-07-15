@@ -1,8 +1,10 @@
+@ "ustr.hdr"
+
 type GenReg: unsigned;
 
 extern fn genReleaseReg(reg: GenReg);
 
-extern fn genConstant(val: -> char): GenReg;
+extern fn genConstant(val: -> UStr): GenReg;
 
 enum GenInstr
 {
@@ -15,6 +17,6 @@ enum GenInstr
 extern fn genInstr(instr: GenInstr, left: GenReg, right: GenReg): GenReg;
 extern fn genHalt(exitCode: GenReg);
 
-extern fn genLoadAddress(varName: -> char): GenReg;
+extern fn genLoadAddress(varName: -> UStr): GenReg;
 extern fn genFetch(addr: GenReg): GenReg;
 extern fn genStore(val: GenReg, addr: GenReg);
