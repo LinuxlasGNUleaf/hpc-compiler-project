@@ -1,3 +1,4 @@
+
 @ <stdio.hdr>
 
 @ "parser.hdr"
@@ -42,14 +43,14 @@ fn parseAdditive(): ->Expr
 
 fn parseTerm(): ->Expr
 {
-    local left: ->Expr = parseFactor();
+    local left: ->Expr = parseUnary();
     if (!left) {
         return nullptr;
     }
     while (token.kind == ASTERISK || token.kind == SLASH) {
         local exprKind: ExprKind = exprKindFromToken(token);
         getToken();
-        local right: ->Expr = parseFactor();
+        local right: ->Expr = parseUnary();
         if (!right) {
             printf("%u.%u expected term\n",
                    token.pos.row, token.pos.col);
@@ -58,6 +59,33 @@ fn parseTerm(): ->Expr
         left = createBinaryExpr(exprKind, left, right);
     }
     return left;
+}
+
+fn parseUnary(): -> Expr
+{
+    if (token.kind == ASTERISK) {
+        getToken();
+        local child: ->Expr = parseUnary();
+        if (!child) {
+            printf("%u.%u expected unary\n",
+                   token.pos.row, token.pos.col);
+            assert(0);
+            return nullptr;
+        }
+        return createDerefExpr(child);
+    } else if (token.kind == AMPERSAND) {
+        getToken();
+        local child: ->Expr = parseUnary();
+        if (!addressableExpr(child)) {
+            printf("%u.%u: expression has no address\n",
+                  token.pos.row, token.pos.col);
+            assert(0);
+            return nullptr;
+        }
+        return createAddrExpr(child);
+    } else {
+        return parseFactor();
+    }
 }
 
 fn parseFactor(): -> Expr
@@ -101,5 +129,17 @@ fn exprKindFromToken(token: Token): ExprKind
         default:
             assert(0 && "internal error: exprKindFromToken");
             return 0;
+    }
+}
+
+fn addressableExpr(expr: ->Expr): bool
+{
+    if (expr->kind == EXPR_IDENTIFIER)
+    {
+        return true;
+    } else if (expr->kind == EXPR_DEREF || expr->kind == EXPR_ASSIGN){
+        return true;
+    } else {
+        return false;
     }
 }

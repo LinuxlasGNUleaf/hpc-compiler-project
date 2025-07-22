@@ -1,4 +1,5 @@
 @ <stdio.hdr>
+
 @ "expr.hdr"
 @ "gen.hdr"
 @ "ustr.hdr"
@@ -6,21 +7,26 @@
 fn main() {
     local expr: -> Expr;
 
+    local _2: -> UStr = UStrCreate("2");
+    local _3: -> UStr = UStrCreate("3");
+    local _4: -> UStr = UStrCreate("4");
+    local _x: -> UStr = UStrCreate("x");
+
     expr = createBinaryExpr(EXPR_SUB,
                             createBinaryExpr(EXPR_DIV,
-                                             createIntegerExpr(UStrCreate("2")),
-                                             createIntegerExpr(UStrCreate("3"))),
-                            createIntegerExpr(UStrCreate("4")));
+                                             createIntegerExpr(_2),
+                                             createIntegerExpr(_3)),
+                            createIntegerExpr(_4));
     printExprLatexTree(expr);
-    printf("\n");
-
     expr = createBinaryExpr(EXPR_ASSIGN,
-                            createIdentifierExpr(UStrCreate("x")),
+                            createDerefExpr(
+                                createAddrExpr(
+                                    createIdentifierExpr(_x))),
                             expr);
     printExprLatexTree(expr);
     printf("\n");
 
-    //genReleaseReg(loadExpr(expr));
+    genReleaseReg(loadExpr(expr));
 
     releaseExpr(expr);
 }

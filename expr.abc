@@ -84,6 +84,15 @@ fn printExprTree(expr: ->Expr)
         printExprTree(expr->left);
         printExprTree(expr->right);
         printf("] ");
+    } else if (expr->kind >= EXPR_UNARY && expr->kind < EXPR_UNARY_END) {
+        printf(" [ ");
+        switch (expr->kind) {
+            case EXPR_DEREF:    printf("*");   break;
+            case EXPR_ADDR:     printf("\\&"); break;
+            default: assert(0);
+        }
+        printExprTree(expr->child);
+        printf("] ");
     }
 }
 
@@ -134,13 +143,32 @@ fn loadExpr(expr: ->Expr): GenReg
                 assert(0 && "loadExpr 2: not all cases handled!");
                 return genConstant("0");
         }
+    } else if (expr->kind >= EXPR_UNARY && expr->kind <= EXPR_UNARY_END) {
+        switch (expr->kind) {
+            case EXPR_ADDR: return loadExprAddress(expr->child);
+            case EXPR_DEREF: {
+                local n: GenReg = loadExpr(expr->child);
+                genReleaseReg(n);
+                return genFetch(n);
+            }
+            default:
+                assert(0 && "loadExpr 3: not all cases handled!");
+                return genConstant("0");
+        }
     }
-    assert(0 && "loadExpr 3: not all cases handled!");
+    assert(0 && "loadExpr 4: not all cases handled!");
     return genConstant("0");
 }
 
 fn loadExprAddress(expr: ->Expr): GenReg
 {
-    assert(expr->kind == EXPR_IDENTIFIER);
-    return genLoadAddress(expr->identifier);
+    switch (expr->kind) {
+        case EXPR_IDENTIFIER:
+            return genLoadAddress(expr->identifier);
+        case EXPR_DEREF:
+            return loadExpr(expr->child);
+        default:
+            assert(0 && "loadExprAdress: not all cases handled!");
+            return 0;
+    }
 }

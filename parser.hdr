@@ -4,7 +4,9 @@
 extern fn parseExpr(): -> Expr;
 extern fn parseAdditive(): -> Expr;
 
-fn parseFactor(): -> Expr;
 fn parseTerm(): -> Expr;
+fn parseUnary(): -> Expr;
+fn parseFactor(): -> Expr;
 
 fn exprKindFromToken(token: Token): ExprKind;
+fn addressableExpr(expr: -> Expr): bool;
