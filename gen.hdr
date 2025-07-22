@@ -20,3 +20,10 @@ extern fn genHalt(exitCode: GenReg);
 extern fn genLoadAddress(varName: -> UStr): GenReg;
 extern fn genFetch(addr: GenReg): GenReg;
 extern fn genStore(val: GenReg, addr: GenReg);
+
+extern fn genInit();
+extern fn genBeginFunctionDefinition(name: -> UStr);
+extern fn genEndFunctionDefinition();
+
+extern fn genPrepareFunctionCall(numArgs: int);
+extern fn genExecuteFunctionCall(name: -> UStr, numArgs: int): GenReg;

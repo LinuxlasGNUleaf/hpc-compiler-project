@@ -1,0 +1,15 @@
+@ "gen.hdr"
+
+fn main()
+{
+    genInit();
+    genBeginFunctionDefinition("foo");
+    genEndFunctionDefinition();
+
+    genBeginFunctionDefinition("main");
+
+    genPrepareFunctionCall(0);
+    genReleaseReg(genExecuteFunctionCall("foo", 0));
+
+    genEndFunctionDefinition();
+}
