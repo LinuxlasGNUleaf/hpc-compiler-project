@@ -5,6 +5,100 @@
 @ "lexer.hdr"
 @ "gen.hdr"
 
+fn parseFunction(): bool
+{
+    if (token.kind != FN) {
+        return false;
+    }
+    getToken();
+    if (token.kind != IDENTIFIER) {
+        printf("%u.%u: function name expected\n",
+               token.pos.row, token.pos.col);
+        return false;
+    }
+    genBeginFunctionDefinition(token.val);
+    getToken();
+    if (!parseCompoundStatement()) {
+        printf("%u.%u: compound expression expected\n",
+               token.pos.row, token.pos.col);
+        return false;
+    }
+    genEndFunctionDefinition();
+    return true;
+}
+
+fn parseExprStatement(): bool
+{
+    local expr: -> Expr = parseExpr();
+    if (!expr) {
+        return false;
+    }
+    if (token.kind != SEMICOLON) {
+        printf("%u.%u: ';' expected\n", token.pos.row, token.pos.col);
+        return false;
+    }
+    getToken();
+    genReleaseReg(loadExpr(expr));
+    return true;
+}
+
+fn parseCompoundStatement(): bool
+{
+    if (token.kind != LBRACE) {
+        return false;
+    }
+    getToken();
+    while (parseCompoundStatement() || parseWhileStatement() || parseExprStatement()) {
+    }
+    if (token.kind != RBRACE) {
+        printf("%u.%u: '}' expected\n", token.pos.row, token.pos.col);
+        return false;
+    }
+    getToken();
+    return true;
+}
+
+fn parseWhileStatement(): bool
+{
+    static count: int = 0;
+    if (token.kind != WHILE) {
+        return false;
+    }
+    getToken();
+    ++count;
+    printf("while%d:\n", count);
+    if (token.kind != LPAREN) {
+        printf("%u.%u: '(' expected\n",
+               token.pos.row, token.pos.col);
+        return false;
+    }
+    getToken();
+    local expr: -> Expr = parseExpr();
+    if (!expr) {
+        printf("%u.%u: expression expected\n",
+               token.pos.row, token.pos.col);
+        return false;
+    }
+    if (token.kind != RPAREN) {
+        printf("%u.%u: ')' expected\n",
+               token.pos.row, token.pos.col);
+        return false;
+    }
+    getToken();
+    local reg: GenReg = loadExpr(expr);
+    printf("\tsub\t\t%%0,\t\t\t\t%%%d,\t\t\t\t%%0\n", reg);
+    printf("\tjz\t\tdone%d\n", count);
+    genReleaseReg(reg);
+
+    if (!parseCompoundStatement()) {
+        printf("%u.%u: compund expression expected\n",
+               token.pos.row, token.pos.col);
+   }
+   printf("\tjmp\t\twhile%d\n", count);
+   printf("done%d:\n", count);
+   return true;
+}
+
 fn parseExpr(): -> Expr
 {
     local left: ->Expr = parseAdditive();
@@ -95,9 +189,19 @@ fn parseFactor(): -> Expr
         getToken();
         return expr;
     } else if (token.kind == IDENTIFIER) {
-        local expr: ->Expr = createIdentifierExpr(token.val);
+        local val: -> UStr = token.val;
         getToken();
-        return expr;
+        if (token.kind == LPAREN) {
+            getToken();
+            if (token.kind != RPAREN) {
+                printf("%u.%u: ')' expected\n", token.pos.row, token.pos.col);
+                return nullptr;
+            }
+            getToken();
+            return createCallExpr(val);
+        } else {
+            return createIdentifierExpr(val);
+        }
     } else if (token.kind == LPAREN) {
         getToken();
         local expr: ->Expr = parseExpr();

@@ -1,4 +1,5 @@
 @ <stdio.hdr>
+@ <string.hdr>
 
 @ "genvar.hdr"
 @ "gen.hdr"
@@ -26,7 +27,7 @@ fn genReleaseReg(reg: GenReg)
 fn genConstant(val: -> UStr): GenReg
 {
     local reg: GenReg = getReg();
-    printf("\tload %s, %%%d\n", val, reg);
+    printf("\tload\t%s,\t\t\t\t%%%d\n", val, reg);
     return reg;
 }
 
@@ -35,16 +36,16 @@ fn genInstr(instr: GenInstr, left: GenReg, right: GenReg): GenReg
     local reg: GenReg = getReg();
     switch (instr) {
         case GEN_ADD:
-            printf("\tadd %%%d, %%%d, %%%d\n", left, right, reg);
+            printf("\tadd\t\t%%%d,\t\t\t\t%%%d,\t\t\t\t%%%d\n", right, left, reg);
             break;
         case GEN_SUB:
-            printf("\tsub %%%d, %%%d, %%%d\n", left, right, reg);
+            printf("\tsub\t\t%%%d,\t\t\t\t%%%d,\t\t\t\t%%%d\n", right, left, reg);
             break;
         case GEN_MUL:
-            printf("\tmul %%%d, %%%d, %%%d\n", left, right, reg);
+            printf("\tmul\t\t%%%d,\t\t\t\t%%%d,\t\t\t\t%%%d\n", right, left, reg);
             break;
         case GEN_DIV:
-            printf("\tdiv %%%d, %%%d, %%%d\n", left, right, reg);
+            printf("\tdiv\t\t%%%d,\t\t\t\t%%%d,\t\t\t\t%%%d\n", right, left, reg);
             break;
         default:
             assert(0 && "Interal error: genInstr");
@@ -55,71 +56,95 @@ fn genInstr(instr: GenInstr, left: GenReg, right: GenReg): GenReg
 
 fn genHalt(exitCode: GenReg)
 {
-    printf("\thalt %%%d\n", exitCode);
+    printf("\thalt\t%%%d\n", exitCode);
 }
 
 fn genLoadAddress(varName: -> UStr): GenReg
 {
     genAddGlobalVar(varName);
     local reg: GenReg = getReg();
-    printf("\tload %s, %%%d\n", varName, reg);
+    if (strlen(varName) > 4) {
+        printf("\tload\t%s,\t\t%%%d\n", varName, reg);
+    } else if (strlen(varName) > 1) {
+        printf("\tload\t%s,\t\t\t%%%d\n", varName, reg);
+    } else {
+        printf("\tload\t%s,\t\t\t\t%%%d\n", varName, reg);
+    }
     return reg;
 }
 
 fn genFetch(addr: GenReg): GenReg
 {
     local reg: GenReg = getReg();
-    printf("\tmovq (%%%d), %%%d\n", addr, reg);
+    printf("\tmovq\t(%%%d),\t\t\t%%%d\n", addr, reg);
     return reg;
 }
 
 fn genStore(val: GenReg, addr: GenReg)
 {
-    printf("\tmovq %%%d, (%%%d)\n", val, addr);
+    printf("\tmovq\t%%%d,\t\t\t\t(%%%d)\n", val, addr);
 }
 
 fn genInit()
 {
-    printf("\t.equ\tSP,\t\t1\n");
-    printf("\t.equ\tFP,\t\t2\n");
-    printf("\t.equ\tretval,\t\t16\n");
+    printf("\t.equ\tSP,\t\t\t\t1\n");
+    printf("\t.equ\tFP,\t\t\t\t2\n");
+    printf("\t.equ\tretval,\t\t\t16\n");
     printf("\t.text\n");
-    printf("\tload\t0,\t\t%%SP\n");
+    printf("\tload\t0,\t\t\t\t%%SP\n");
     genPrepareFunctionCall(0);
-    genExecuteFunctionCall("main", 0);
-    genHalt(4);
+    local reg: GenReg = genExecuteFunctionCall("main", 0);
+    genHalt(reg);
+    genReleaseReg(reg);
+
+    genBeginFunctionDefinition("getchar");
+    printf("\tgetc\t%%4\n");
+    genEndFunctionDefinition();
+
+    genBeginFunctionDefinition("putchar");
+    printf("\tload\tPUTCHAR,\t\t%%4\n");
+    printf("\tmovq\t(%%4),\t\t\t%%4\n");
+    printf("\tputc\t%%4\n");
+    genEndFunctionDefinition();
+
+    genAddGlobalVar(UStrCreate("PUTCHAR"));
+
 }
 
 fn genBeginFunctionDefinition(name: ->UStr)
 {
     printf("%s:\n", name);
-    printf("\tmovq\t%%3,\t\t(%%SP)\n");
-    printf("\tmovq\t%%FP,\t\t8(%%SP)\n");
-    printf("\tmovq\t%%SP,\t\t%%FP\n");
+    printf("\tmovq\t%%3,\t\t\t\t(%%SP)\n");
+    printf("\tmovq\t%%FP,\t\t\t8(%%SP)\n");
+    printf("\tmovq\t%%SP,\t\t\t%%FP\n");
     printf("\t// begin function body\n");
 }
 
 fn genEndFunctionDefinition()
 {
     printf("\t// store return value\n");
-    printf("\tmovq\t%%3,\t\tretval(%%FP)\n");
+    printf("\tmovq\t%%4,\t\t\t\tretval(%%FP)\n");
     printf("\t//end function body\n");
-    printf("\tmovq\t%%FP,\t\t%%SP\n");
-    printf("\tmovq\t8(%%SP),\t\t%%FP\n");
-    printf("\tmovq\t(%%SP),\t%%3\n");
-    printf("\tret\t%%3\n");
+    printf("\tmovq\t%%FP,\t\t\t%%SP\n");
+    printf("\tmovq\t8(%%SP),\t\t\t%%FP\n");
+    printf("\tmovq\t(%%SP),\t\t\t%%3\n");
+    printf("\tret\t\t%%3\n");
 }
 
 fn genPrepareFunctionCall(numArgs: int)
 {
-    printf("\tsub\t8*(3 + %d),\t\t%%SP,\t\t%%SP\n", numArgs);
+    printf("\tsub\t\t8*(3 + %d),\t\t%%SP,\t\t\t%%SP\n", numArgs);
 }
 
 fn genExecuteFunctionCall(name: -> UStr, numArgs: int): GenReg
 {
     local reg: GenReg = getReg();
-    printf("\tcall\t%s,\t\t%%3\n", name);
-    printf("\tmovq\tretval(%%SP),\t\t%%%d\n", reg);
-    printf("\tadd\t8*(3 + %d),\t\t%%SP,\t\t%%SP\n", numArgs);
+    if (strlen(name) > 4) {
+        printf("\tcall\t%s,\t\t%%3\n", name);
+    } else {
+        printf("\tcall\t%s,\t\t\t%%3\n", name);
+    }
+    printf("\tmovq\tretval(%%SP),\t%%%d\n", reg);
+    printf("\tadd\t\t8*(3 + %d),\t\t%%SP,\t\t\t%%SP\n", numArgs);
     return reg;
 }

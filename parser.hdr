@@ -1,9 +1,15 @@
 @ "expr.hdr"
 @ "lexer.hdr"
 
+extern fn parseFunction(): bool;
 extern fn parseExpr(): -> Expr;
-extern fn parseAdditive(): -> Expr;
 
+
+fn parseExprStatement(): bool;
+fn parseCompoundStatement(): bool;
+fn parseWhileStatement(): bool;
+
+fn parseAdditive(): -> Expr;
 fn parseTerm(): -> Expr;
 fn parseUnary(): -> Expr;
 fn parseFactor(): -> Expr;

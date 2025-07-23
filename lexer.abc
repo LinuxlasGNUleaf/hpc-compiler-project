@@ -1,4 +1,6 @@
+
 @ <stdio.hdr>
+@ <string.hdr>
 
 @ "lexer.hdr"
 @ "string.hdr"
@@ -35,7 +37,7 @@ fn isDigit(ch: int): bool
 
 fn isLetter(ch: int): bool
 {
-    return ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'A';
+    return ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z';
 }
 
 fn getTokenInternal(): TokenKind
@@ -82,6 +84,12 @@ fn getTokenInternal(): TokenKind
     } else if (ch == '&') {
         nextCh(true);
         return token.kind = AMPERSAND;
+    } else if (ch == '{') {
+        nextCh(true);
+        return token.kind = LBRACE;
+    } else if (ch == '}') {
+        nextCh(true);
+        return token.kind = RBRACE;
     } else if (ch == EOF) {
         return token.kind = EOI;
     } else {
@@ -98,7 +106,20 @@ fn getToken(): TokenKind
 {
     getTokenInternal();
     token.val = UStrCreate(val);
+    if (token.kind == IDENTIFIER)
+    {
+        if (!strcmp(token.val, "fn")) {
+            return token.kind = FN;
+        } else if (!strcmp(token.val, "while")) {
+            return token.kind = WHILE;
+        } else if (!strcmp(token.val, "if")) {
+            return token.kind = IF;
+        } else if (!strcmp(token.val, "else")) {
+            return token.kind = ELSE;
+        }
+    }
     return token.kind;
+
 }
 
 fn tokenKindStr(token: TokenKind): -> char
@@ -117,6 +138,12 @@ fn tokenKindStr(token: TokenKind): -> char
         case SEMICOLON: return "SEMICOLON";
         case EQUAL: return "EQUAL";
         case AMPERSAND: return "AMPERSAND";
+        case LBRACE: return "LBRACE";
+        case RBRACE: return "RBRACE";
+        case FN: return "FN";
+        case WHILE: return "WHILE";
+        case IF: return "IF";
+        case ELSE: return "ELSE";
         default: return "??";
     }
 }

@@ -7,24 +7,13 @@
 
 fn main()
 {
+    genInit();
     getToken();
     // parse program (sequence of statements)
-    while (true) {
-        // parse statement
-        local expr: -> Expr = parseExpr();
-        if (!expr) {
-            break;
-        }
-        if (token.kind != SEMICOLON) {
-            printf("%u.%u: ';' expected\n", token.pos.row, token.pos.col);
-            break;
-        }
-        getToken();
-        genReleaseReg(loadExpr(expr));
-//      printExprLatexTree(expr);
+    while (parseFunction()) {
     }
     if (token.kind != EOI) {
-        printf("syntax error\n");
+        printf("%u.%u: syntax error\n", token.pos.row, token.pos.col);
     }
     genHalt(3);
     genPrintSymtab();

@@ -14,7 +14,13 @@ enum TokenKind
     RPAREN,
     SEMICOLON,
     EQUAL,
-    AMPERSAND
+    AMPERSAND,
+    LBRACE,
+    RBRACE,
+    FN,
+    WHILE,
+    IF,
+    ELSE
 };
 
 struct Token {

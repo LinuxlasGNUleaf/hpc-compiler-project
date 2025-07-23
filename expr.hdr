@@ -21,7 +21,9 @@ enum ExprKind
     EXPR_PRIMARY = EXPR_UNARY_END,
     EXPR_INTEGER = EXPR_PRIMARY,
     EXPR_IDENTIFIER,
-    EXPR_PRIMARY_END
+    EXPR_PRIMARY_END,
+
+    EXPR_CALL,
 };
 
 struct Expr
@@ -49,3 +51,4 @@ extern fn releaseExpr(expr: ->Expr);
 extern fn printExprTree(expr: ->Expr);
 extern fn printExprLatexTree(expr: ->Expr);
 extern fn loadExpr(expr: ->Expr): GenReg;
+extern fn createCallExpr(val: -> UStr): -> Expr;

@@ -9,14 +9,14 @@ fn main() {
 
     local _2: -> UStr = UStrCreate("2");
     local _3: -> UStr = UStrCreate("3");
-    local _4: -> UStr = UStrCreate("4");
+    local _f: -> UStr = UStrCreate("f");
     local _x: -> UStr = UStrCreate("x");
 
     expr = createBinaryExpr(EXPR_SUB,
                             createBinaryExpr(EXPR_DIV,
                                              createIntegerExpr(_2),
                                              createIntegerExpr(_3)),
-                            createIntegerExpr(_4));
+                            createCallExpr(_f));
     printExprLatexTree(expr);
     expr = createBinaryExpr(EXPR_ASSIGN,
                             createDerefExpr(
